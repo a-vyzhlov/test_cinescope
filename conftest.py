@@ -45,3 +45,41 @@ def auth_session(test_user):
     session.headers.update(HEADERS)
     session.headers.update({"Authorization": f"Bearer {token}"})
     return session
+
+@pytest.fixture(scope='session')
+def login_data(test_user):
+    return {
+        "email": test_user["email"],
+        "password": test_user["password"]
+    }
+
+@pytest.fixture()
+def invalid_login_data(test_user):
+    return {
+        "email": test_user["email"],
+        "password": test_user["password"] + "1"
+    }
+
+@pytest.fixture()
+def error_401():
+    return {"message":"Неверный логин или пароль","error":"Unauthorized","statusCode":401}
+
+@pytest.fixture()
+def error_404():
+    return {"message":"Пользователь не найден","error":"Not Found","statusCode":404}
+
+
+@pytest.fixture()
+def nonexistent_login_data(test_user):
+    return {
+        "email": "llllll" + test_user["email"] + "LLLL",
+        "password": test_user["password"]
+    }
+
+@pytest.fixture()
+def error_400():
+    return {"message":"Bad Request","error":"Not Found","statusCode":404}
+
+@pytest.fixture()
+def empty_login_data(test_user):
+    return {}
