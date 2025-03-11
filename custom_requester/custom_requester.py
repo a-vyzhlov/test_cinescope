@@ -11,7 +11,7 @@ class CustomRequester:
         "Accept": "application/json"
     }
 
-    def __init__(self, session, base_url):  # TODO принимать сессию и использовать ее для отправки запросов
+    def __init__(self, session, base_url):
         """
         Инициализация кастомного реквестера.
         :param session: Объект requests.Session.
