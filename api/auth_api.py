@@ -1,5 +1,5 @@
 from custom_requester.custom_requester import CustomRequester
-from constants import LOGIN_ENDPOINT, REGISTER_ENDPOINT
+from constants import LOGIN_ENDPOINT, REGISTER_ENDPOINT, BASE_URL
 
 class AuthAPI(CustomRequester):
     """
@@ -7,7 +7,8 @@ class AuthAPI(CustomRequester):
       """
 
     def __init__(self, session):
-        super().__init__(session=session, base_url="https://auth.dev-cinescope.coconutqa.ru/")
+        super().__init__(session=session, base_url=BASE_URL)
+        self.session = session
 
     def register_user(self, user_data, expected_status=201):
         """

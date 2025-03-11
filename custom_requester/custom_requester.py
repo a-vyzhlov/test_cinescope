@@ -1,5 +1,4 @@
 import json
-import requests
 import logging
 import os
 
@@ -12,16 +11,30 @@ class CustomRequester:
         "Accept": "application/json"
     }
 
-    def __init__(self, session, base_url):
+    def __init__(self, session, base_url):  # TODO принимать сессию и использовать ее для отправки запросов
+        """
+        Инициализация кастомного реквестера.
+        :param session: Объект requests.Session.
+        :param base_url: Базовый URL API.
+        """
         self.base_url = base_url
-        self.headers = self.base_headers.copy()
         self.session = session
+        self.headers = self.base_headers.copy()
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
 
     def send_request(self, method, endpoint, data=None, expected_status=200, need_logging=True):
+        """
+        Универсальный метод для отправки запросов.
+        :param method: HTTP метод (GET, POST, PUT, DELETE и т.д.).
+        :param endpoint: Эндпоинт (например, "/login").
+        :param data: Тело запроса (JSON-данные).
+        :param expected_status: Ожидаемый статус-код (по умолчанию 200).
+        :param need_logging: Флаг для логирования (по умолчанию True).
+        :return: Объект ответа requests.Response.
+        """
         url = f"{self.base_url}{endpoint}"
-        response = self.session.request(method, url, json=data, headers=self.headers)
+        response = self.session.request(method, url, json=data)
         if need_logging:
             self.log_request_and_response(response)
         if response.status_code != expected_status:
@@ -72,11 +85,11 @@ class CustomRequester:
         except Exception as e:
             self.logger.error(f"\nLogging failed: {type(e)} - {e}")
 
-    def _update_session_headers(self, session, **kwargs):
+    def _update_session_headers(self, **kwargs):
         """
         Обновление заголовков сессии.
         :param session: Объект requests.Session, предоставленный API-классом.
         :param kwargs: Дополнительные заголовки.
         """
         self.headers.update(kwargs)  # Обновляем базовые заголовки
-        session.headers.update(self.headers)  # Обновляем заголовки в текущей сессии
+        self.session.headers.update(self.headers)  # Обновляем заголовки в текущей сессии
