@@ -1,7 +1,3 @@
-import pytest
-import requests
-from constants import BASE_URL, HEADERS, REGISTER_ENDPOINT,  LOGIN_ENDPOINT
-from custom_requester.custom_requester import CustomRequester
 from api.api_manager import ApiManager
 
 
@@ -34,3 +30,23 @@ class TestAuthAPI:
         # Проверки
         assert "accessToken" in response_data, "Токен доступа отсутствует в ответе"
         assert response_data["user"]["email"] == registered_user["email"], "Email не совпадает"
+
+    def test_get_movies_with_correct_filters(self, api_manager: ApiManager, corr_params):
+        """
+        Позитивный тест на получения списка фильмов.
+        """
+        response = api_manager.movies_api.get_movies(corr_params)
+        response_data = response.json()
+
+        # Проверки
+        assert response_data["pageSize"] == corr_params["pageSize"], "pageSize не совпадает"
+
+    def test_get_movies_with_incorrect_filters(self, api_manager: ApiManager, incorr_params, text_error_400):
+        """
+        Негативный тест на получения списка фильмов.
+        """
+        response = api_manager.movies_api.get_movies(incorr_params, expected_status=400)
+        response_data = response.json()
+
+        # Проверки
+        assert response_data == text_error_400, "Неверное тело ошибки"
