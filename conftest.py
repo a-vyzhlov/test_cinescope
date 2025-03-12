@@ -72,18 +72,18 @@ def user_creds():
 @pytest.fixture()
 def corr_params():
     """
-        Фикстура для создания корректных фильтров по поиску фильмов.
+        Фикстура корректных фильтров по поиску фильмов.
     """
     return {
-    "pageSize": 10,
-    "page": 1,
-    "minPrice": 1,
-    "maxPrice": 1000,
-    "locations": ["MSK", "SPB"],
-    "published": True,
-    "genreId": 1,
-    "createdAt": "asc"
-}
+        "pageSize": 10,
+        "page": 1,
+        "minPrice": 1,
+        "maxPrice": 1000,
+        "locations": ["MSK", "SPB"],
+        "published": True,
+        "genreId": 1,
+        "createdAt": "asc"
+    }
 
 @pytest.fixture()
 def incorr_params():
@@ -91,18 +91,81 @@ def incorr_params():
         Фикстура для создания корректных фильтров по поиску фильмов.
     """
     return {
-    "locations": "Будапешт", # Несуществующая локация
-    "published": "Нет" # Неверные тип данных
+        "locations": "Будапешт", # Несуществующая локация
+        "published": "Нет" # Неверные тип данных
 }
 
 @pytest.fixture()
 def text_error_400():
     """
-        Фикстура для создания корректных фильтров по поиску фильмов.
+        Фикстура для создания некорректных текста ошибки 400.
     """
     return {
-    "message": "Некорректные данные",
-    "error": "Bad Request",
-    "statusCode": 400
-}
+        "message": "Некорректные данные",
+        "error": "Bad Request",
+        "statusCode": 400
+    }
 
+
+@pytest.fixture()
+def text_error_401():
+    """
+        Фикстура для создания некорректных текста ошибки 401.
+    """
+    return {
+        "message": "Unauthorized",
+        "statusCode": 401
+    }
+@pytest.fixture()
+def text_error_404():
+    """
+        Фикстура для создания некорректных текста ошибки 404.
+    """
+    return {
+        "message": "Фильм не найден",
+        "error": "Not Found",
+        "statusCode": 404
+    }
+
+@pytest.fixture()
+def text_error_409():
+    """
+        Фикстура для создания некорректных текста ошибки 409.
+    """
+    return {
+        'error': 'Conflict',
+        'message': 'Фильм с таким названием уже существует',
+        'statusCode': 409
+    }
+
+@pytest.fixture()
+def movie_params():
+    """
+        Фикстура для передачи рандомных параметров фильма.
+    """
+    return DataGenerator.generate_movie_params()
+
+@pytest.fixture
+def authenticate_super_admin(api_manager: ApiManager, user_creds):
+    """
+    Фикстура для аутентификации супер админа.
+    """
+    api_manager.auth_api.authenticate(user_creds)
+
+@pytest.fixture
+def created_movie(api_manager: ApiManager, movie_params):
+    """
+    Фикстура для регистрации и получения данных зарегистрированного пользователя.
+    """
+    response = api_manager.movies_api.create_movie(movie_params)
+    response_data = response.json()
+    created_movie = movie_params.copy()
+    created_movie["id"] = response_data["id"]
+    return created_movie
+
+@pytest.fixture()
+def rand_id():
+    """
+        Фикстура для передачи рандомного ID фильма.
+    """
+    return DataGenerator.generate_movie_id()

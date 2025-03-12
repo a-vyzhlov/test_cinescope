@@ -16,3 +16,25 @@ class MoviesAPI(CustomRequester):
             endpoint=MOVIES_END_POINT,
             expected_status=expected_status
         )
+
+    def create_movie(self, movie_params,  expected_status=201):
+        return self.send_request(
+            method="POST",
+            data=movie_params,
+            endpoint=MOVIES_END_POINT,
+            expected_status=expected_status
+        )
+
+    def get_movies_id(self, created_movie,  expected_status=200):
+        return self.send_request(
+            method="GET",
+            endpoint=f"{MOVIES_END_POINT}/{created_movie['id']}",
+            expected_status=expected_status
+        )
+
+    def delete_movies_id(self, created_movie,  expected_status=200):
+        return self.send_request(
+            method="DELETE",
+            endpoint=f"{MOVIES_END_POINT}/{created_movie['id']}",
+            expected_status=expected_status
+        )
