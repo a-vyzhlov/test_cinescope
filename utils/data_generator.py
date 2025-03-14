@@ -64,4 +64,4 @@ class DataGenerator:
         """
         Генерация рандомного ID фильма:
         """
-        return {'id': random.randint(100000, 1000000)}
+        return random.randint(100000, 1000000)

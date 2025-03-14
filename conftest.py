@@ -31,11 +31,7 @@ def registered_user(api_manager: ApiManager, test_user):
     """
     Фикстура для регистрации и получения данных зарегистрированного пользователя.
     """
-    response = api_manager.auth_api.register_user(test_user)
-    response_data = response.json()
-    registered_user = test_user.copy()
-    registered_user["id"] = response_data["id"]
-    return registered_user
+    return api_manager.auth_api.register_user(test_user).json()
 
 @pytest.fixture(scope="session")
 def requester():
@@ -69,8 +65,8 @@ def user_creds():
     """
     return [os.getenv('ADMIN_EMAIL'), os.getenv('ADMIN_PASSWORD')]
 
-@pytest.fixture()
-def corr_params():
+@pytest.fixture
+def movie_filters_for_search():
     """
         Фикстура корректных фильтров по поиску фильмов.
     """
@@ -85,8 +81,8 @@ def corr_params():
         "createdAt": "asc"
     }
 
-@pytest.fixture()
-def incorr_params():
+@pytest.fixture
+def incorrect_movie_filters_for_search():
     """
         Фикстура для создания корректных фильтров по поиску фильмов.
     """
@@ -95,7 +91,7 @@ def incorr_params():
         "published": "Нет" # Неверные тип данных
 }
 
-@pytest.fixture()
+@pytest.fixture
 def text_error_400():
     """
         Фикстура для создания некорректных текста ошибки 400.
@@ -107,7 +103,7 @@ def text_error_400():
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def text_error_401():
     """
         Фикстура для создания некорректных текста ошибки 401.
@@ -116,7 +112,7 @@ def text_error_401():
         "message": "Unauthorized",
         "statusCode": 401
     }
-@pytest.fixture()
+@pytest.fixture
 def text_error_404():
     """
         Фикстура для создания некорректных текста ошибки 404.
@@ -127,7 +123,7 @@ def text_error_404():
         "statusCode": 404
     }
 
-@pytest.fixture()
+@pytest.fixture
 def text_error_409():
     """
         Фикстура для создания некорректных текста ошибки 409.
@@ -138,7 +134,7 @@ def text_error_409():
         'statusCode': 409
     }
 
-@pytest.fixture()
+@pytest.fixture
 def movie_params():
     """
         Фикстура для передачи рандомных параметров фильма.
@@ -150,20 +146,16 @@ def authenticate_super_admin(api_manager: ApiManager, user_creds):
     """
     Фикстура для аутентификации супер админа.
     """
-    api_manager.auth_api.authenticate(user_creds)
+    return api_manager.auth_api.authenticate(user_creds)
 
 @pytest.fixture
 def created_movie(api_manager: ApiManager, movie_params):
     """
-    Фикстура для регистрации и получения данных зарегистрированного пользователя.
+    Фикстура для создания и получения данных нового фильма.
     """
-    response = api_manager.movies_api.create_movie(movie_params)
-    response_data = response.json()
-    created_movie = movie_params.copy()
-    created_movie["id"] = response_data["id"]
-    return created_movie
+    return api_manager.movies_api.create_movie(movie_params).json()
 
-@pytest.fixture()
+@pytest.fixture
 def rand_id():
     """
         Фикстура для передачи рандомного ID фильма.
