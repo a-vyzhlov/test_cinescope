@@ -1,7 +1,9 @@
 import pytest
 from api.api_manager import ApiManager
 import requests
-from constants import BASE_URL_AUTH
+from constants.roles import Roles
+from entities.user import User
+from constants.constants import BASE_URL_AUTH
 from custom_requester.custom_requester import CustomRequester
 from utils.data_generator import DataGenerator
 from dotenv import load_dotenv
@@ -9,21 +11,20 @@ import os
 
 load_dotenv()
 
+class SuperAdminCreds:
+    USERNAME = os.getenv('SUPER_ADMIN_USERNAME')
+    PASSWORD = os.getenv('SUPER_ADMIN_PASSWORD')
+
 @pytest.fixture
 def test_user():
-    """
-    Генерация случайного пользователя для тестов.
-    """
-    random_email = DataGenerator.generate_random_email()
-    random_name = DataGenerator.generate_random_name()
     random_password = DataGenerator.generate_random_password()
 
     return {
-        "email": random_email,
-        "fullName": random_name,
+        "email": DataGenerator.generate_random_email(),
+        "fullName": DataGenerator.generate_random_name(),
         "password": random_password,
         "passwordRepeat": random_password,
-        "roles": ["USER"]
+        "roles": [Roles.USER.value]
     }
 
 @pytest.fixture
@@ -94,7 +95,7 @@ def incorrect_movie_filters_for_search():
 @pytest.fixture
 def text_error_400():
     """
-        Фикстура для создания некорректных текста ошибки 400.
+        Фикстура для создания некорректного текста ошибки 400.
     """
     return {
         "message": "Некорректные данные",
@@ -106,16 +107,28 @@ def text_error_400():
 @pytest.fixture
 def text_error_401():
     """
-        Фикстура для создания некорректных текста ошибки 401.
+        Фикстура для создания некорректного текста ошибки 401.
     """
     return {
         "message": "Unauthorized",
         "statusCode": 401
     }
+
+
+@pytest.fixture
+def text_error_403():
+    """
+        Фикстура для создания некорректного текста ошибки 403.
+    """
+    return  {
+        "message": "Forbidden resource",
+        "error": "Forbidden",
+        "statusCode": 403
+    }
 @pytest.fixture
 def text_error_404():
     """
-        Фикстура для создания некорректных текста ошибки 404.
+        Фикстура для создания некорректного текста ошибки 404.
     """
     return {
         "message": "Фильм не найден",
@@ -149,11 +162,11 @@ def authenticate_super_admin(api_manager: ApiManager, user_creds):
     return api_manager.auth_api.authenticate(user_creds)
 
 @pytest.fixture
-def created_movie(api_manager: ApiManager, movie_params):
+def created_movie(super_admin, movie_params):
     """
     Фикстура для создания и получения данных нового фильма.
     """
-    return api_manager.movies_api.create_movie(movie_params).json()
+    return super_admin.api.movies_api.create_movie(movie_params).json()
 
 @pytest.fixture
 def rand_id():
@@ -161,3 +174,74 @@ def rand_id():
         Фикстура для передачи рандомного ID фильма.
     """
     return DataGenerator.generate_movie_id()
+
+@pytest.fixture
+def user_session():
+    """
+        Фикстура для создания сессии юзера
+    """
+    user_pool = []
+
+    def _create_user_session():
+        session = requests.Session()
+        user_session = ApiManager(session)
+        user_pool.append(user_session)
+        return user_session
+
+    yield _create_user_session
+
+    for user in user_pool:
+        user.close_session()
+
+@pytest.fixture
+def super_admin(user_session):
+    """
+        Фикстура для создания user с правами SUPER_ADMIN
+    """
+    new_session = user_session()
+
+    super_admin = User(
+        SuperAdminCreds.USERNAME,
+        SuperAdminCreds.PASSWORD,
+        [Roles.SUPER_ADMIN.value],
+        new_session)
+
+    super_admin.api.auth_api.authenticate(super_admin.creds)
+    return super_admin
+
+@pytest.fixture(scope="function")
+def creation_user_data(test_user):
+    updated_data = test_user.copy()
+    updated_data.update({
+        "verified": True,
+        "banned": False
+    })
+    return updated_data
+
+@pytest.fixture
+def common_user(user_session, super_admin, creation_user_data):
+    new_session = user_session()
+
+    common_user = User(
+        creation_user_data['email'],
+        creation_user_data['password'],
+        [Roles.USER.value],
+        new_session)
+
+    super_admin.api.user_api.create_user(creation_user_data)
+    common_user.api.auth_api.authenticate(common_user.creds)
+    return common_user
+
+@pytest.fixture
+def admin_user(user_session, super_admin, creation_user_data):
+    new_session = user_session()
+
+    admin_user = User(
+        creation_user_data['email'],
+        creation_user_data['password'],
+        [Roles.USER.value],
+        new_session)
+
+    super_admin.api.user_api.create_user(creation_user_data)
+    admin_user.api.auth_api.authenticate(admin_user.creds)
+    return admin_user
