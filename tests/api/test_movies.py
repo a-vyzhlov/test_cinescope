@@ -1,18 +1,36 @@
 from api.api_manager import ApiManager
 from conftest import common_user
+import pytest
+import random
 
 
 class TestMoviesAPI:
 
+    @pytest.mark.parametrize("minPrice,maxPrice,locations,genreId", [
+        (1 , 1000, ["MSK", "SPB"], 5),
+        (50, 100, "MSK", 2),
+        (1000, 100000, "SPB", 6),
+    ])
     def test_get_movies_with_filters(self, common_user,
-                                             movie_filters_for_search):
+                                             minPrice, maxPrice, locations, genreId):
         """
         Позитивный тест на получения списка фильмов.
         """
-        response = common_user.api.movies_api.get_movies(movie_filters_for_search)
+        response = common_user.api.movies_api.get_movies(
+            {"minPrice": minPrice,
+             "maxPrice": maxPrice,
+             "locations": locations,
+             "genreId": genreId}
+        )
         response_data = response.json()
 
-        assert response_data["pageSize"] == movie_filters_for_search["pageSize"], "pageSize не совпадает"
+        movies = response_data["movies"]
+
+        # Проверка ценового диапазона и не только
+        for movie in movies:
+            assert minPrice <= movie["price"] <= maxPrice, f"Фильм {movie['name']} не соответствует ценовому диапазону"
+            assert movie["location"] in locations, f"Фильм {movie['name']} не соответствует локации"
+            assert movie["genreId"] == genreId, f"Фильм {movie['name']} не соответствует ID жанра"
 
     def test_get_movies_with_incorrect_filters(self, super_admin,
                                                incorrect_movie_filters_for_search,
@@ -98,7 +116,7 @@ class TestMoviesAPI:
         assert response_data["genreId"] == movie_params["genreId"], "ID жанра фильма не совпадает"
         assert response_data["description"] == movie_params["description"], "Время создания не совпадает"
 
-    def test_create_and_delite_movie(self, common_user,
+    def test_create_and_delite_movie_сommon_user(self, common_user,
                                      created_movie,
                                      movie_params,
                                      text_error_403):

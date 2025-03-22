@@ -6,8 +6,10 @@ from entities.user import User
 from constants.constants import BASE_URL_AUTH
 from custom_requester.custom_requester import CustomRequester
 from utils.data_generator import DataGenerator
+from models.user_data_model import TestUser
 from dotenv import load_dotenv
 import os
+
 
 load_dotenv()
 
@@ -16,16 +18,16 @@ class SuperAdminCreds:
     PASSWORD = os.getenv('SUPER_ADMIN_PASSWORD')
 
 @pytest.fixture
-def test_user():
+def test_user() -> TestUser:
     random_password = DataGenerator.generate_random_password()
 
-    return {
-        "email": DataGenerator.generate_random_email(),
-        "fullName": DataGenerator.generate_random_name(),
-        "password": random_password,
-        "passwordRepeat": random_password,
-        "roles": [Roles.USER.value]
-    }
+    return TestUser(
+        email=DataGenerator.generate_random_email(),
+        fullName=DataGenerator.generate_random_name(),
+        password=random_password,
+        passwordRepeat=random_password,
+        roles=[Roles.USER.value]
+    )
 
 @pytest.fixture
 def registered_user(api_manager: ApiManager, test_user):
@@ -209,15 +211,6 @@ def super_admin(user_session):
     super_admin.api.auth_api.authenticate(super_admin.creds)
     return super_admin
 
-@pytest.fixture(scope="function")
-def creation_user_data(test_user):
-    updated_data = test_user.copy()
-    updated_data.update({
-        "verified": True,
-        "banned": False
-    })
-    return updated_data
-
 @pytest.fixture
 def common_user(user_session, super_admin, creation_user_data):
     new_session = user_session()
@@ -245,3 +238,17 @@ def admin_user(user_session, super_admin, creation_user_data):
     super_admin.api.user_api.create_user(creation_user_data)
     admin_user.api.auth_api.authenticate(admin_user.creds)
     return admin_user
+
+@pytest.fixture(scope="function")
+def registration_user_data()-> TestUser:
+    random_password = DataGenerator.generate_random_password()
+
+    return TestUser(
+        email=DataGenerator.generate_random_email(),
+        fullName=DataGenerator.generate_random_name(),
+        password=random_password,
+        passwordRepeat=random_password,
+        roles=[Roles.USER.value],
+        verified= True,
+        banned= False
+    )

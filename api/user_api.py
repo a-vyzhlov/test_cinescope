@@ -1,5 +1,6 @@
 from custom_requester.custom_requester import CustomRequester
 from constants.constants import BASE_URL_AUTH, USER_ENDPOINT
+import json
 
 class UserAPI(CustomRequester):
     """
@@ -27,7 +28,7 @@ class UserAPI(CustomRequester):
         return self.send_request(
             method="POST",
             endpoint=USER_ENDPOINT,
-            data=user_data,
+            data=json.loads(user_data.model_dump_json(exclude_unset=True)),
             expected_status=expected_status
         )
 

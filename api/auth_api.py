@@ -1,5 +1,7 @@
 from custom_requester.custom_requester import CustomRequester
 from constants.constants import LOGIN_ENDPOINT, REGISTER_ENDPOINT, BASE_URL_AUTH
+from models.user_data_model import TestUser
+import json
 
 class AuthAPI(CustomRequester):
     """
@@ -10,7 +12,7 @@ class AuthAPI(CustomRequester):
         super().__init__(session=session, base_url=BASE_URL_AUTH)
         self.session = session
 
-    def register_user(self, user_data, expected_status=201):
+    def register_user(self, user_data: TestUser , expected_status=201):
         """
         Регистрация нового пользователя.
         :param user_data: Данные пользователя.
@@ -19,7 +21,7 @@ class AuthAPI(CustomRequester):
         return self.send_request(
             method="POST",
             endpoint=REGISTER_ENDPOINT,
-            data=user_data,
+            data=json.loads(user_data.model_dump_json(exclude_unset=True)),
             expected_status=expected_status
         )
 

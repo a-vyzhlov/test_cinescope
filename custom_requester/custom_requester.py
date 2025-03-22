@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from constants.constants import RED, GREEN, RESET
 
 class CustomRequester:
     """
@@ -35,7 +36,7 @@ class CustomRequester:
         :return: Объект ответа requests.Response.
         """
         url = f"{self.base_url}{endpoint}"
-        response = self.session.request(method, url, json=data, params=params)
+        response = self.session.request(method, url, data=data, params=params)
         if need_logging:
             self.log_request_and_response(response)
         if response.status_code != expected_status:
@@ -43,11 +44,14 @@ class CustomRequester:
         return response
 
     def log_request_and_response(self, response):
+        """
+        Логгирование запросов и ответов. Настройки логгирования описаны в pytest.ini
+        Преобразует вывод в curl-like (-H хэдэеры), (-d тело)
+
+        :param response: Объект response получаемый из метода "send_request"
+        """
         try:
             request = response.request
-            GREEN = '\033[32m'
-            RED = '\033[31m'
-            RESET = '\033[0m'
             headers = " \\\n".join([f"-H '{header}: {value}'" for header, value in request.headers.items()])
             full_test_name = f"pytest {os.environ.get('PYTEST_CURRENT_TEST', '').replace(' (call)', '')}"
 
@@ -55,9 +59,10 @@ class CustomRequester:
             if hasattr(request, 'body') and request.body is not None:
                 if isinstance(request.body, bytes):
                     body = request.body.decode('utf-8')
+                elif isinstance(request.body, str):
+                    body = request.body
                 body = f"-d '{body}' \n" if body != '{}' else ''
 
-            self.logger.info(f"\n{'=' * 40} REQUEST {'=' * 40}")
             self.logger.info(
                 f"{GREEN}{full_test_name}{RESET}\n"
                 f"curl -X {request.method} '{request.url}' \\\n"
@@ -65,26 +70,15 @@ class CustomRequester:
                 f"{body}"
             )
 
+            response_status = response.status_code
+            is_success = response.ok
             response_data = response.text
-            try:
-                response_data = json.dumps(json.loads(response.text), indent=4, ensure_ascii=False)
-            except json.JSONDecodeError:
-                pass
-
-            self.logger.info(f"\n{'=' * 40} RESPONSE {'=' * 40}")
-            if not response.ok:
-                self.logger.info(
-                    f"\tSTATUS_CODE: {RED}{response.status_code}{RESET}\n"
-                    f"\tDATA: {RED}{response_data}{RESET}"
-                )
-            else:
-                self.logger.info(
-                    f"\tSTATUS_CODE: {GREEN}{response.status_code}{RESET}\n"
-                    f"\tDATA:\n{response_data}"
-                )
-            self.logger.info(f"{'=' * 80}\n")
+            if not is_success:
+                self.logger.info(f"\tRESPONSE:"
+                                 f"\nSTATUS_CODE: {RED}{response_status}{RESET}"
+                                 f"\nDATA: {RED}{response_data}{RESET}")
         except Exception as e:
-            self.logger.error(f"\nLogging failed: {type(e)} - {e}")
+            self.logger.info(f"\nLogging went wrong: {type(e)} - {e}")
 
     def _update_session_headers(self, **kwargs):
         """

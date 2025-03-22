@@ -107,3 +107,35 @@
 #
 # square = list(squares(5))
 # print(square)
+#
+#
+# from typing import Optional, Union
+#
+# def multiply(a: int, b: int) -> int:
+#     return a * b
+#
+# def sum_numbers(numbers: list[int]) -> int:
+#     return sum(numbers)
+#
+# def find_user(user_id: int) -> Optional[str]:
+#     if user_id == 1:
+#         return "Пользователь найден"
+#     return None
+#
+# def process_input(value: Union[int, str]) -> str:
+#     return f"Ты передал: {value}"
+#
+#
+# class User:
+#     def __init__(self, name: str, age: int):
+#         self.name = name
+#         self.age = age
+#
+#     def greet(self) -> str:
+#         return f"Привет, меня зовут {self.name}!"
+#
+# def get_even_numbers(numbers: list[int]) -> list:
+#     return [num for num in numbers if num % 2 == 0]
+#
+# if __name__ == '__main__':
+#     print(get_even_numbers(['1','2','3','4','5','6']))
