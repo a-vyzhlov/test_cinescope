@@ -24,7 +24,7 @@ class CustomRequester:
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
 
-    def send_request(self, method, endpoint, data=None, params=None, expected_status=200, need_logging=True):
+    def send_request(self, method, endpoint, data=None, params=None, expected_status=200, need_logging=True, use_json=False):
         """
         Универсальный метод для отправки запросов.
         :param method: HTTP метод (GET, POST, PUT, DELETE и т.д.).
@@ -36,7 +36,10 @@ class CustomRequester:
         :return: Объект ответа requests.Response.
         """
         url = f"{self.base_url}{endpoint}"
-        response = self.session.request(method, url, data=data, params=params)
+        if use_json:
+            response = self.session.request(method, url, json=data, params=params)  # Используем json
+        else:
+            response = self.session.request(method, url, data=data, params=params)  # Используем data
         if need_logging:
             self.log_request_and_response(response)
         if response.status_code != expected_status:

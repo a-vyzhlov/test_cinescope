@@ -24,7 +24,8 @@ class MoviesAPI(CustomRequester):
             method="POST",
             data=movie_params,
             endpoint=MOVIES_END_POINT,
-            expected_status=expected_status
+            expected_status=expected_status,
+            use_json=True
         )
 
     def get_movies_id(self, created_movie_id,  expected_status=200):
