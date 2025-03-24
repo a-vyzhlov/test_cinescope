@@ -1,3 +1,5 @@
+import json
+
 from custom_requester.custom_requester import CustomRequester
 from constants.constants import MOVIES_END_POINT
 
@@ -22,7 +24,7 @@ class MoviesAPI(CustomRequester):
     def create_movie(self, movie_params, headers=None,  expected_status=201):
         return self.send_request(
             method="POST",
-            data=movie_params,
+            data=json.loads(movie_params.model_dump_json(exclude_unset=True)),
             endpoint=MOVIES_END_POINT,
             expected_status=expected_status,
             use_json=True,

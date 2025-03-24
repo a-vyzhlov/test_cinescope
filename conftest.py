@@ -12,6 +12,7 @@ from db_requester.models import UserDBModel
 from entities.user import User
 from constants.constants import BASE_URL_AUTH
 from custom_requester.custom_requester import CustomRequester
+from models.movie_data_model import OptionalMovie, Movie
 from utils.data_generator import DataGenerator
 from models.user_data_model import TestUser
 from dotenv import load_dotenv
@@ -122,22 +123,6 @@ def user_creds():
     return [os.getenv('SUPER_ADMIN_USERNAME'), os.getenv('SUPER_ADMIN_PASSWORD')]
 
 @pytest.fixture
-def movie_filters_for_search():
-    """
-        Фикстура корректных фильтров по поиску фильмов.
-    """
-    return {
-        "pageSize": 10,
-        "page": 1,
-        "minPrice": 1,
-        "maxPrice": 1000,
-        "locations": ["MSK", "SPB"],
-        "published": True,
-        "genreId": 1,
-        "createdAt": "asc"
-    }
-
-@pytest.fixture
 def incorrect_movie_filters_for_search():
     """
         Фикстура для создания корректных фильтров по поиску фильмов.
@@ -203,11 +188,20 @@ def text_error_409():
     }
 
 @pytest.fixture
-def movie_params():
+def movie_params() -> OptionalMovie:
     """
         Фикстура для передачи рандомных параметров фильма.
     """
-    return DataGenerator.generate_movie_params()
+    dict_filters = DataGenerator.generate_movie_params()
+    return OptionalMovie(
+          name=dict_filters.get('name'),
+          imageUrl=dict_filters.get('imageUrl'),
+          price=dict_filters.get('price'),
+          description=dict_filters.get('description'),
+          location=dict_filters.get('location'),
+          published=dict_filters.get('published'),
+          genreId=dict_filters.get('genreId')
+        )
 
 @pytest.fixture
 def authenticate_super_admin(api_manager: ApiManager, user_creds):
@@ -217,11 +211,11 @@ def authenticate_super_admin(api_manager: ApiManager, user_creds):
     return api_manager.auth_api.authenticate(user_creds)
 
 @pytest.fixture
-def created_movie(super_admin, movie_params):
+def created_movie(super_admin, movie_params) -> Movie:
     """
     Фикстура для создания и получения данных нового фильма.
     """
-    return super_admin.api.movies_api.create_movie(movie_params).json()
+    return Movie(**super_admin.api.movies_api.create_movie(movie_params).json())
 
 @pytest.fixture
 def rand_id():
@@ -312,5 +306,5 @@ def super_admin_token(api_manager: ApiManager, user_creds) -> str:
 
 @pytest.fixture()
 def delay_between_retries():
-    time.sleep(2)  # Задержка в 2 секунды\ это не обязательно но
-    yield          # нужно понимать что такая возможность имеется
+    time.sleep(2)  # Задержка в 2 секунды
+    yield

@@ -63,3 +63,7 @@ class LoginUserResponse(BaseModel):
 class LoginData(BaseModel):
     email: str = Field(pattern=r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
     password: str = Field(..., min_length=8, description="Пароль пользователя")
+
+
+class FullNameUser(BaseModel):
+    fullName: str
