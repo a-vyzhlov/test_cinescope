@@ -1,7 +1,14 @@
+import datetime
+import time
+
 import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
 from api.api_manager import ApiManager
 import requests
 from constants.roles import Roles
+from db_requester.models import UserDBModel
 from entities.user import User
 from constants.constants import BASE_URL_AUTH
 from custom_requester.custom_requester import CustomRequester
@@ -12,10 +19,56 @@ import os
 
 
 load_dotenv()
-
 class SuperAdminCreds:
     USERNAME = os.getenv('SUPER_ADMIN_USERNAME')
     PASSWORD = os.getenv('SUPER_ADMIN_PASSWORD')
+
+HOST = os.getenv('DB_HOST')
+PORT = int(os.getenv('DB_PORT'))
+DATABASE_NAME = os.getenv('DB_NAME')
+USERNAME = os.getenv('DB_USERNAME')
+PASSWORD = os.getenv('DB_PASSWORD')
+
+engine = create_engine(f"postgresql+psycopg2://{USERNAME}:{PASSWORD}@{HOST}:{PORT}/{DATABASE_NAME}")
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+@pytest.fixture(scope="module")
+def db_session():
+    """
+    Фикстура с областью видимости module.
+    Тестовые данные создаются один раз для всех тестов в модуле.
+    """
+    session = SessionLocal()
+
+    # Уникальный ID для тестового пользователя
+    test_user_id = f"test_id_{DataGenerator.generate_random_str(5)}"
+
+    test_user = session.query(UserDBModel).filter(UserDBModel.id == test_user_id).first()
+
+    # Если пользователя нет, создаем его
+    if not test_user:
+        test_user = UserDBModel(
+            id=test_user_id,
+            email=DataGenerator.generate_random_email(),
+            full_name=DataGenerator.generate_random_name(),
+            password=DataGenerator.generate_random_password(),
+            created_at=datetime.datetime.now(),
+            updated_at=datetime.datetime.now(),
+            verified=False,
+            banned=False,
+            roles="{USER}"
+        )
+        session.add(test_user)
+        session.commit()
+
+    yield session # можете запустить тесты в дебаг режиме и поставить тут брекпойнт
+                  # зайдите в базу и убедитесь что новый объект был создан
+
+		# код ниже выполнится после всех запущенных тестов
+    session.delete(test_user) # Удаляем тестовые данные
+    session.commit() # сохраняем изменения для всех остальных подключений
+    session.close() # завершаем сессию (отключаемся от базы данных)
+
 
 @pytest.fixture
 def test_user() -> TestUser:
@@ -66,7 +119,7 @@ def user_creds():
     """
         Фикстура для передачи учетных данных ADMIN из .env.
     """
-    return [os.getenv('ADMIN_EMAIL'), os.getenv('ADMIN_PASSWORD')]
+    return [os.getenv('SUPER_ADMIN_USERNAME'), os.getenv('SUPER_ADMIN_PASSWORD')]
 
 @pytest.fixture
 def movie_filters_for_search():
@@ -252,3 +305,12 @@ def registration_user_data()-> TestUser:
         verified= True,
         banned= False
     )
+
+@pytest.fixture()
+def super_admin_token(api_manager: ApiManager, user_creds) -> str:
+    return api_manager.auth_api.authenticate(user_creds, for_token = True)
+
+@pytest.fixture()
+def delay_between_retries():
+    time.sleep(2)  # Задержка в 2 секунды\ это не обязательно но
+    yield          # нужно понимать что такая возможность имеется

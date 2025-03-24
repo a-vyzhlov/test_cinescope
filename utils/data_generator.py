@@ -57,11 +57,24 @@ class DataGenerator:
           "genreId": random.randint(1, 10)
         }
 
-
-
     @staticmethod
     def generate_movie_id():
         """
         Генерация рандомного ID фильма:
         """
         return random.randint(100000, 1000000)
+
+    @staticmethod
+    def generate_random_str(length: int) -> str:
+        """
+        Генерирует случайную строку заданной длины.
+        """
+        # Используем модуль string для получения всех букв (строчных и заглавных) и цифр
+        characters = string.ascii_letters + string.digits
+        # Генерируем случайную строку, выбирая `length` символов из `characters`
+        random_string = ''.join(random.choice(characters) for _ in range(length))
+        return random_string
+
+    @staticmethod
+    def generate_random_int(length: int) -> int:
+        return random.randint(10 ** (length - 1), 10 ** length - 1)
