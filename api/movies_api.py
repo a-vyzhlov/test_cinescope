@@ -27,7 +27,6 @@ class MoviesAPI(CustomRequester):
             data=json.loads(movie_params.model_dump_json(exclude_unset=True)),
             endpoint=MOVIES_END_POINT,
             expected_status=expected_status,
-            use_json=True,
             headers=headers
         )
 

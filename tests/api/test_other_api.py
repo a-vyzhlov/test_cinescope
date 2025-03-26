@@ -6,6 +6,7 @@ import pytest
 from pytz import timezone
 from sqlalchemy.orm import Session
 from db_requester.models import MovieDBModel, AccountTransactionTemplate, GenreDBModel
+from models.movie_data_model import OptionalMovie
 from utils.data_generator import DataGenerator
 
 
@@ -18,14 +19,14 @@ class TestOtherAPI:
         # проверяем что до начала тестирования фильма с таким названием нет
         assert movies_from_db.count() == 0, "В базе уже присутствует фильм с таким названием"
 
-        movie_data = {
-            "name": movie_name,
-            "price": 500,
-            "description": "Описание тестового фильма",
-            "location": "MSK",
-            "published": True,
-            "genreId": 3
-        }
+        movie_data = OptionalMovie(
+            name=movie_name,
+            price=500,
+            description="Описание тестового фильма",
+            location="MSK",
+            published=True,
+            genreId=3
+        )
         response = api_manager.movies_api.create_movie(
             movie_params=movie_data,
             headers={"authorization": f"Bearer {super_admin_token}"}

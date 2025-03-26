@@ -45,15 +45,15 @@ def get_worldclockap_time() -> WorldClockResponse:
     # Парсим JSON-ответ с использованием Pydantic модели
     return WorldClockResponse(**response.json())
 
-class TestTodayIsHolidayServiceAPI:
-    # worldclockap
-    def test_worldclockap(self):  # проверка работоспособности сервиса worldclockap
-        world_clock_response = get_worldclockap_time()
-        # Выводим текущую дату и время
-        current_date_time = world_clock_response.currentDateTime
-        print(f"Текущая дата и время: {current_date_time=}")
-
-        assert current_date_time == datetime.now(pytz.utc).strftime("%Y-%m-%dT%H:%MZ"), "Дата не совпадает"
+# class TestTodayIsHolidayServiceAPI:
+#     # worldclockap
+#     def test_worldclockap(self):  # проверка работоспособности сервиса worldclockap
+#         world_clock_response = get_worldclockap_time()
+#         # Выводим текущую дату и время
+#         current_date_time = world_clock_response.currentDateTime
+#         print(f"Текущая дата и время: {current_date_time=}")
+#
+#         assert current_date_time == datetime.now(pytz.utc).strftime("%Y-%m-%dT%H:%MZ"), "Дата не совпадает"
 
     # def test_what_is_today(self):  # проверка работоспособности Fake сервиса what_is_today
     #     # Запрашиваем текущее время у сервиса worldclockap

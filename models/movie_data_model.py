@@ -72,7 +72,7 @@ class OptionalMovie(Movie):
     name: Optional[str] = None
     genre: Optional[int] = None
     price: Optional[float] = None
-    location: Optional[Locations] = None
+    location: Optional[Union[list[Locations], Locations]] = None
     published: Optional[bool] = None
     createdAt: Optional[str] = None
 

@@ -29,8 +29,7 @@ class UserAPI(CustomRequester):
             method="POST",
             endpoint=USER_ENDPOINT,
             data=json.loads(user_data.model_dump_json(exclude_unset=True)),
-            expected_status=expected_status,
-            use_json = True
+            expected_status=expected_status
         )
 
     def delete_user(self, user_id, expected_status=204):

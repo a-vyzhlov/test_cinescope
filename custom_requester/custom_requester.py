@@ -1,6 +1,9 @@
 import json
 import logging
 import os
+
+from pydantic import BaseModel
+
 from constants.constants import RED, GREEN, RESET
 
 class CustomRequester:
@@ -24,7 +27,7 @@ class CustomRequester:
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
 
-    def send_request(self, method, endpoint, data=None, params=None, expected_status=200, need_logging=True, use_json=False, headers=None):
+    def send_request(self, method, endpoint, data=None, params=None, expected_status=200, need_logging=True, headers=None):
         """
         Универсальный метод для отправки запросов.
         :param method: HTTP метод (GET, POST, PUT, DELETE и т.д.).
@@ -33,16 +36,16 @@ class CustomRequester:
         :param params: Словарь параметров.
         :param expected_status: Ожидаемый статус-код (по умолчанию 200).
         :param need_logging: Флаг для логирования (по умолчанию True).
+        :param headers: Хэдеры
         :return: Объект ответа requests.Response.
         """
         if headers is not None:
             self._update_session_headers(**headers)
 
         url = f"{self.base_url}{endpoint}"
-        if use_json:
-            response = self.session.request(method, url, json=data, params=params)  # Используем json
-        else:
-            response = self.session.request(method, url, data=data, params=params)  # Используем data
+        if isinstance(data, BaseModel):
+            data = json.loads(data.model_dump_json(exclude_unset=True))
+        response = self.session.request(method, url, json=data, params=params)
         if need_logging:
             self.log_request_and_response(response)
         if response.status_code != expected_status:
